@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jours d'ouverture 2026</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap');
+
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #242424;
+    --border: #2e2e2e;
+    --accent: #ff6b35;
+    --accent2: #ffb347;
+    --text: #f0ece4;
+    --muted: #7a7570;
+    --open: #4ade80;
+    --closed: #ef4444;
+    --partial: #facc15;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px 16px 60px;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  .logo {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-size: clamp(28px, 6vw, 48px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+
+  h1 span {
+    color: var(--accent);
+  }
+
+  .subtitle {
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  /* COMPTEUR PRINCIPAL */
+  .counter-hero {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 24px;
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .big-number {
+    font-family: 'DM Mono', monospace;
+    font-size: clamp(64px, 15vw, 96px);
+    font-weight: 500;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .big-label {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 6px;
+    letter-spacing: 0.05em;
+  }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .stat-chip {
+    background: var(--surface2);
+    border-radius: 10px;
+    padding: 12px 8px;
+    text-align: center;
+  }
+
+  .stat-chip .val {
+    font-family: 'DM Mono', monospace;
+    font-size: 22px;
+    font-weight: 500;
+    display: block;
+  }
+
+  .stat-chip .lbl {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+    display: block;
+  }
+
+  .val.open { color: var(--open); }
+  .val.closed { color: var(--closed); }
+  .val.ferie { color: var(--partial); }
+
+  /* CRITERES */
+  .section-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .criteria-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .criteria-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    user-select: none;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .criteria-card.active {
+    border-color: var(--accent);
+    background: rgba(255, 107, 53, 0.08);
+  }
+
+  .criteria-card.active::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,107,53,0.05) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .criteria-label {
+    font-size: 13px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .criteria-label .icon { font-size: 16px; }
+
+  .criteria-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .toggle-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+    margin-left: auto;
+    flex-shrink: 0;
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  .criteria-card.active .toggle-dot {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  /* JOURS FERIES DETAIL */
+  .feriers-list {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 24px;
+  }
+
+  .ferier-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  .ferier-item:last-child { border-bottom: none; }
+
+  .ferier-name { font-weight: 500; }
+
+  .ferier-date {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .ferier-badge {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .ferier-badge.ouvert {
+    background: rgba(74, 222, 128, 0.12);
+    color: var(--open);
+  }
+
+  .ferier-badge.ferme {
+    background: rgba(239, 68, 68, 0.12);
+    color: var(--closed);
+  }
+
+  /* CALENDRIER MENSUEL */
+  .months-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .month-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+  }
+
+  .month-name {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    color: var(--text);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .month-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 18px;
+    color: var(--accent);
+  }
+
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+  }
+
+  .cal-header {
+    font-size: 8px;
+    color: var(--muted);
+    text-align: center;
+    padding: 2px 0;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .cal-day {
+    aspect-ratio: 1;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .cal-day.empty { background: transparent; }
+  .cal-day.ouvert { background: rgba(74, 222, 128, 0.25); color: var(--open); }
+  .cal-day.ferme { background: rgba(239, 68, 68, 0.12); color: #5a3030; }
+  .cal-day.ferie-ouvert { background: rgba(250, 204, 21, 0.25); color: var(--partial); }
+  .cal-day.ferie-ferme { background: rgba(250, 204, 21, 0.1); color: #6b5a00; }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🍕 Calculateur restaurant</div>
+  <h1>Jours d'<span>ouverture</span><br>2026</h1>
+  <div class="subtitle">Configurez vos critères, le compteur se met à jour</div>
+</header>
+
+<!-- COMPTEUR HERO -->
+<div class="counter-hero">
+  <div class="big-number" id="mainCount">0</div>
+  <div class="big-label">JOURS D'OUVERTURE EN 2026</div>
+  <div class="stats-row">
+    <div class="stat-chip">
+      <span class="val open" id="countOpen">—</span>
+      <span class="lbl">Jours ouverts</span>
+    </div>
+    <div class="stat-chip">
+      <span class="val closed" id="countClosed">—</span>
+      <span class="lbl">Jours fermés</span>
+    </div>
+    <div class="stat-chip">
+      <span class="val ferie" id="countFerie">—</span>
+      <span class="lbl">J. fériés ouverts</span>
+    </div>
+  </div>
+</div>
+
+<!-- CRITÈRES -->
+<div class="section-title">Jours d'ouverture habituels</div>
+<div class="criteria-grid" id="daysCriteria">
+  <div class="criteria-card" data-day="1" onclick="toggleDay(this)">
+    <div class="criteria-label"><span class="icon">📅</span> Lundi <div class="toggle-dot"></div></div>
+    <div class="criteria-sub">Jour de semaine</div>
+  </div>
+  <div class="criteria-card" data-day="2" onclick="toggleDay(this)">
+    <div class="criteria-label"><span class="icon">📅</span> Mardi <div class="toggle-dot"></div></div>
+    <div class="criteria-sub">Jour de semaine</div>
+  </div>
+  <div class="criteria-card" data-day="3" onclick="toggleDay(this)">
+    <div class="criteria-label"><span class="icon">📅</span> Mercredi <div class="toggle-dot"></div></div>
+    <div class="criteria-sub">Jour de semaine</div>
+  </div>
+  <div class="criteria-card" data-day="4" onclick="toggleDay(this)">
+    <div class="criteria-label"><span class="icon">📅</span> Jeudi <div class="toggle-dot"></div></div>
+    <div class="criteria-sub">Jour de semaine</div>
+  </div>
+  <div class="criteria-card" data-day="5" onclick="toggleDay(this)">
+    <div class="criteria-label"><span class="icon">📅</span> Vendredi <div class="toggle-dot"></div></div>
+    <div class="criteria-sub">Jour de semaine</div>
+  </div>
+  <div class="criteria-card" data-day="6" onclick="toggleDay(this)">
+    <div class="criteria-label"><span class="icon">🎉</span> Samedi <div class="toggle-dot"></div></div>
+    <div class="criteria-sub">Week-end</div>
+  </div>
+  <div class="criteria-card" data-day="0" onclick="toggleDay(this)">
+    <div class="criteria-label"><span class="icon">🌿</span> Dimanche <div class="toggle-dot"></div></div>
+    <div class="criteria-sub">Week-end</div>
+  </div>
+</div>
+
+<!-- JOURS FERIÉS -->
+<div class="section-title">Jours fériés 2026 — cliquez pour ouvrir / fermer</div>
+<div class="feriers-list" id="feriersList"></div>
+
+<!-- LÉGENDE -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:rgba(74,222,128,0.25)"></div> Ouvert</div>
+  <div class="legend-item"><div class="legend-dot" style="background:rgba(239,68,68,0.12)"></div> Fermé</div>
+  <div class="legend-item"><div class="legend-dot" style="background:rgba(250,204,21,0.25)"></div> Férié ouvert</div>
+  <div class="legend-item"><div class="legend-dot" style="background:rgba(250,204,21,0.1)"></div> Férié fermé</div>
+</div>
+
+<!-- CALENDRIERS MENSUELS -->
+<div class="section-title">Vue mensuelle</div>
+<div class="months-grid" id="monthsGrid"></div>
+
+<script>
+// ——— DONNÉES ———
+const JOURS_FERIES_2026 = [
+  { date: '2026-01-01', nom: "Jour de l'An" },
+  { date: '2026-04-06', nom: "Lundi de Pâques" },
+  { date: '2026-05-01', nom: "Fête du Travail" },
+  { date: '2026-05-08', nom: "Victoire 1945" },
+  { date: '2026-05-14', nom: "Ascension" },
+  { date: '2026-05-25', nom: "Lundi de Pentecôte" },
+  { date: '2026-07-14', nom: "Fête Nationale" },
+  { date: '2026-08-15', nom: "Assomption" },
+  { date: '2026-11-01', nom: "Toussaint" },
+  { date: '2026-11-11', nom: "Armistice 1918" },
+  { date: '2026-12-25', nom: "Noël" },
+];
+
+const NOMS_MOIS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+const JOURS_COURT = ['Di','Lu','Ma','Me','Je','Ve','Sa'];
+
+// ——— ÉTAT ———
+let openDays = new Set(); // 0=dim, 1=lun...6=sam
+let feriesOpen = new Set(); // dates ISO ouvertes
+
+// ——— INIT ———
+function init() {
+  buildFeriersList();
+  buildMonthsGrid();
+  recalculate();
+}
+
+function buildFeriersList() {
+  const container = document.getElementById('feriersList');
+  container.innerHTML = '';
+  JOURS_FERIES_2026.forEach(f => {
+    const d = new Date(f.date);
+    const dow = d.getDay();
+    const dayName = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'][dow];
+    const dateStr = d.toLocaleDateString('fr-FR', { day:'2-digit', month:'short' });
+    const isOpen = feriesOpen.has(f.date);
+    const item = document.createElement('div');
+    item.className = 'ferier-item';
+    item.dataset.date = f.date;
+    item.innerHTML = `
+      <div>
+        <div class="ferier-name">${f.nom}</div>
+        <div class="ferier-date">${dayName} ${dateStr}</div>
+      </div>
+      <span class="ferier-badge ${isOpen ? 'ouvert' : 'ferme'}">${isOpen ? 'OUVERT' : 'FERMÉ'}</span>
+    `;
+    item.onclick = () => toggleFerier(f.date);
+    container.appendChild(item);
+  });
+}
+
+function toggleFerier(date) {
+  if (feriesOpen.has(date)) feriesOpen.delete(date);
+  else feriesOpen.add(date);
+  buildFeriersList();
+  buildMonthsGrid();
+  recalculate();
+}
+
+function toggleDay(card) {
+  const day = parseInt(card.dataset.day);
+  if (openDays.has(day)) openDays.delete(day);
+  else openDays.add(day);
+  card.classList.toggle('active');
+  buildMonthsGrid();
+  recalculate();
+}
+
+function isFerier(dateStr) {
+  return JOURS_FERIES_2026.some(f => f.date === dateStr);
+}
+
+function getDateStr(y, m, d) {
+  return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+}
+
+function isDayOpen(dateStr, dow) {
+  const ferie = isFerier(dateStr);
+  if (ferie) {
+    return feriesOpen.has(dateStr);
+  }
+  return openDays.has(dow);
+}
+
+function recalculate() {
+  let totalOpen = 0;
+  let totalClosed = 0;
+  let ferieOuvert = 0;
+
+  for (let m = 0; m < 12; m++) {
+    const daysInMonth = new Date(2026, m+1, 0).getDate();
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dt = new Date(2026, m, d);
+      const dow = dt.getDay();
+      const ds = getDateStr(2026, m, d);
+      const ferie = isFerier(ds);
+      const open = isDayOpen(ds, dow);
+      if (open) {
+        totalOpen++;
+        if (ferie) ferieOuvert++;
+      } else {
+        totalClosed++;
+      }
+    }
+  }
+
+  document.getElementById('mainCount').textContent = totalOpen;
+  document.getElementById('countOpen').textContent = totalOpen;
+  document.getElementById('countClosed').textContent = totalClosed;
+  document.getElementById('countFerie').textContent = ferieOuvert;
+}
+
+function buildMonthsGrid() {
+  const grid = document.getElementById('monthsGrid');
+  grid.innerHTML = '';
+
+  for (let m = 0; m < 12; m++) {
+    const daysInMonth = new Date(2026, m+1, 0).getDate();
+    const firstDow = new Date(2026, m, 1).getDay(); // 0=dim
+    // convert to Mon-first: (dow + 6) % 7
+    const firstOffset = (firstDow + 6) % 7;
+
+    let monthOpen = 0;
+    const dayClasses = [];
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dt = new Date(2026, m, d);
+      const dow = dt.getDay();
+      const ds = getDateStr(2026, m, d);
+      const ferie = isFerier(ds);
+      const open = isDayOpen(ds, dow);
+      if (open) monthOpen++;
+      if (ferie && open) dayClasses.push('ferie-ouvert');
+      else if (ferie && !open) dayClasses.push('ferie-ferme');
+      else if (open) dayClasses.push('ouvert');
+      else dayClasses.push('ferme');
+    }
+
+    const card = document.createElement('div');
+    card.className = 'month-card';
+
+    let calHTML = `
+      <div class="month-name">
+        ${NOMS_MOIS[m]}
+        <span class="month-count">${monthOpen}</span>
+      </div>
+      <div class="cal-grid">
+        <div class="cal-header">Lu</div>
+        <div class="cal-header">Ma</div>
+        <div class="cal-header">Me</div>
+        <div class="cal-header">Je</div>
+        <div class="cal-header">Ve</div>
+        <div class="cal-header">Sa</div>
+        <div class="cal-header">Di</div>
+    `;
+
+    // Décalage Mon-first: 0=lun, 6=dim
+    for (let i = 0; i < firstOffset; i++) {
+      calHTML += `<div class="cal-day empty"></div>`;
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      calHTML += `<div class="cal-day ${dayClasses[d-1]}">${d}</div>`;
+    }
+
+    calHTML += '</div>';
+    card.innerHTML = calHTML;
+    grid.appendChild(card);
+  }
+}
+
+init();
+</script>
+</body>
+</html>
