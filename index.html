@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jours d'ouverture 2027</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap');
+
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #242424;
+    --border: #2e2e2e;
+    --accent: #ff6b35;
+    --text: #f0ece4;
+    --muted: #7a7570;
+    --open: #4ade80;
+    --closed: #3a3030;
+    --ferie-open: #facc15;
+    --vac: #818cf8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px 16px 60px;
+  }
+
+  header { text-align: center; margin-bottom: 28px; }
+  .logo { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.2em; color: var(--accent); text-transform: uppercase; margin-bottom: 8px; }
+  h1 { font-size: clamp(26px, 6vw, 46px); font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; }
+  h1 span { color: var(--accent); }
+  .subtitle { margin-top: 8px; color: var(--muted); font-size: 13px; }
+
+  .counter-hero {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px 20px;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .big-number { font-family: 'DM Mono', monospace; font-size: clamp(56px, 13vw, 88px); font-weight: 500; color: var(--accent); line-height: 1; }
+  .big-label { font-size: 12px; color: var(--muted); margin-top: 6px; letter-spacing: 0.05em; }
+
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 16px; }
+  .stat-chip { background: var(--surface2); border-radius: 10px; padding: 10px 6px; text-align: center; }
+  .stat-chip .val { font-family: 'DM Mono', monospace; font-size: 20px; font-weight: 500; display: block; }
+  .stat-chip .lbl { font-size: 10px; color: var(--muted); margin-top: 2px; display: block; line-height: 1.3; }
+  .val.c-open { color: var(--open); }
+  .val.c-ferie { color: var(--ferie-open); }
+  .val.c-vac { color: var(--vac); }
+  .val.c-closed { color: #ef4444; }
+
+  .section-title {
+    font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.2em;
+    color: var(--muted); text-transform: uppercase; margin-bottom: 10px;
+  }
+
+  /* DAYS GRID */
+  .criteria-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
+  .criteria-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 12px 14px; cursor: pointer; transition: border-color 0.15s, background 0.15s;
+    user-select: none; position: relative;
+  }
+  .criteria-card.active { border-color: var(--accent); background: rgba(255,107,53,0.08); }
+  .criteria-label { font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+  .criteria-label .icon { font-size: 15px; }
+  .toggle-dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--border); margin-left: auto; flex-shrink: 0; transition: background 0.15s, border-color 0.15s; }
+  .criteria-card.active .toggle-dot { background: var(--accent); border-color: var(--accent); }
+
+  /* ZONE SELECTOR */
+  .zone-selector { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; }
+  .zone-btn {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 8px; text-align: center; cursor: pointer; transition: all 0.15s;
+    font-size: 13px; font-weight: 500;
+  }
+  .zone-btn.active { border-color: var(--vac); background: rgba(129,140,248,0.1); color: var(--vac); }
+  .zone-btn .zone-letter { font-family: 'DM Mono', monospace; font-size: 22px; display: block; }
+  .zone-btn .zone-cities { font-size: 9px; color: var(--muted); margin-top: 3px; display: block; line-height: 1.4; }
+  .zone-btn.active .zone-cities { color: rgba(129,140,248,0.7); }
+
+  /* VAC TOGGLE */
+  .vac-toggle-row {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px 16px; margin-bottom: 20px; cursor: pointer;
+  }
+  .vac-toggle-row.active { border-color: var(--vac); background: rgba(129,140,248,0.08); }
+  .vac-toggle-label { font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+  .vac-toggle-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .toggle-pill {
+    width: 36px; height: 20px; border-radius: 20px; background: var(--border);
+    position: relative; transition: background 0.2s; flex-shrink: 0;
+  }
+  .toggle-pill::after {
+    content: ''; position: absolute; top: 3px; left: 3px;
+    width: 14px; height: 14px; border-radius: 50%; background: var(--muted);
+    transition: left 0.2s, background 0.2s;
+  }
+  .vac-toggle-row.active .toggle-pill { background: rgba(129,140,248,0.3); }
+  .vac-toggle-row.active .toggle-pill::after { left: 19px; background: var(--vac); }
+
+  /* FERIERS */
+  .feriers-list { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 20px; }
+  .ferier-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 12px; cursor: pointer; }
+  .ferier-item:last-child { border-bottom: none; }
+  .ferier-name { font-weight: 500; font-size: 13px; }
+  .ferier-date { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); margin-top: 1px; }
+  .ferier-badge { font-size: 9px; padding: 2px 7px; border-radius: 20px; font-family: 'DM Mono', monospace; white-space: nowrap; }
+  .ferier-badge.ouvert { background: rgba(74,222,128,0.12); color: var(--open); }
+  .ferier-badge.ferme { background: rgba(239,68,68,0.08); color: #7a4040; }
+
+  /* VAC LIST */
+  .vac-list { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 20px; }
+  .vac-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+  .vac-item:last-child { border-bottom: none; }
+  .vac-name { font-weight: 500; font-size: 13px; }
+  .vac-dates { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); margin-top: 2px; }
+  .vac-days-count { font-family: 'DM Mono', monospace; font-size: 16px; color: var(--vac); }
+
+  /* MONTHS */
+  .months-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+  .month-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 10px; }
+  .month-name { font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 6px; color: var(--text); display: flex; justify-content: space-between; align-items: center; }
+  .month-count { font-family: 'DM Mono', monospace; font-size: 17px; color: var(--accent); }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+  .cal-header { font-size: 7px; color: var(--muted); text-align: center; padding: 1px 0; font-family: 'DM Mono', monospace; }
+  .cal-day { aspect-ratio: 1; border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 7px; font-family: 'DM Mono', monospace; }
+  .cal-day.empty { background: transparent; }
+  .cal-day.ouvert { background: rgba(74,222,128,0.22); color: var(--open); }
+  .cal-day.ferme { background: rgba(239,68,68,0.07); color: #4a2a2a; }
+  .cal-day.ferie-ouvert { background: rgba(250,204,21,0.28); color: var(--ferie-open); }
+  .cal-day.ferie-ferme { background: rgba(250,204,21,0.07); color: #5a4800; }
+  .cal-day.vac-ouvert { background: rgba(129,140,248,0.28); color: var(--vac); }
+  .cal-day.vac-ferme { background: rgba(129,140,248,0.07); color: #3a3a5a; }
+  .cal-day.vac-ferie-ouvert { background: rgba(129,140,248,0.4); color: #c7d2fe; outline: 1px solid rgba(250,204,21,0.5); }
+  .cal-day.vac-ferie-ferme { background: rgba(129,140,248,0.05); color: #3a3a4a; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--muted); }
+  .legend-dot { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🍕 Calculateur restaurant</div>
+  <h1>Jours d'<span>ouverture</span><br>2027</h1>
+  <div class="subtitle">Jours fériés + vacances scolaires zones A / B / C</div>
+</header>
+
+<!-- COMPTEUR HERO -->
+<div class="counter-hero">
+  <div class="big-number" id="mainCount">0</div>
+  <div class="big-label">JOURS D'OUVERTURE EN 2027</div>
+  <div class="stats-row">
+    <div class="stat-chip"><span class="val c-open" id="cOpen">—</span><span class="lbl">Jours ouverts</span></div>
+    <div class="stat-chip"><span class="val c-closed" id="cClosed">—</span><span class="lbl">Jours fermés</span></div>
+    <div class="stat-chip"><span class="val c-ferie" id="cFerie">—</span><span class="lbl">Fériés ouverts</span></div>
+    <div class="stat-chip"><span class="val c-vac" id="cVac">—</span><span class="lbl">Vac. sco. ouvertes</span></div>
+  </div>
+</div>
+
+<!-- JOURS DE LA SEMAINE -->
+<div class="section-title">Jours d'ouverture habituels</div>
+<div class="criteria-grid" id="daysCriteria">
+  <div class="criteria-card" data-day="1" onclick="toggleDay(this)">
+    <div class="criteria-label"><span class="icon">📅</span> Lundi <div class="toggle-dot"></div></div>
+  </div>
+  <div class="criteria-card" data-day="2" onclick="toggleDay(this)">
+    <div class="criteria-label"><span class="icon">📅</span> Mardi <div class="toggle-dot"></div></div>
+  </div>
+  <div class="criteria-card" data-day="3" onclick="toggleDay(this)">
+    <div class="criteria-label"><span class="icon">📅</span> Mercredi <div class="toggle-dot"></div></div>
+  </div>
+  <div class="criteria-card" data-day="4" onclick="toggleDay(this)">
+    <div class="criteria-label"><span class="icon">📅</span> Jeudi <div class="toggle-dot"></div></div>
+  </div>
+  <div class="criteria-card" data-day="5" onclick="toggleDay(this)">
+    <div class="criteria-label"><span class="icon">📅</span> Vendredi <div class="toggle-dot"></div></div>
+  </div>
+  <div class="criteria-card" data-day="6" onclick="toggleDay(this)">
+    <div class="criteria-label"><span class="icon">🎉</span> Samedi <div class="toggle-dot"></div></div>
+  </div>
+  <div class="criteria-card" data-day="0" onclick="toggleDay(this)">
+    <div class="criteria-label"><span class="icon">🌿</span> Dimanche <div class="toggle-dot"></div></div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- VACANCES SCOLAIRES -->
+<div class="section-title">Vacances scolaires — choisir votre zone</div>
+<div class="zone-selector">
+  <div class="zone-btn" data-zone="A" onclick="selectZone('A')">
+    <span class="zone-letter">A</span>
+    <span class="zone-cities">Lyon, Bordeaux,<br>Grenoble, Dijon…</span>
+  </div>
+  <div class="zone-btn" data-zone="B" onclick="selectZone('B')">
+    <span class="zone-letter">B</span>
+    <span class="zone-cities">Marseille, Lille,<br>Nantes, Rennes…</span>
+  </div>
+  <div class="zone-btn" data-zone="C" onclick="selectZone('C')">
+    <span class="zone-letter">C</span>
+    <span class="zone-cities">Paris, Créteil,<br>Versailles, Toulouse…</span>
+  </div>
+</div>
+
+<div id="vacDaysSection" style="display:none">
+  <div class="section-title">Jours supplémentaires pendant les vacances</div>
+  <div class="criteria-grid">
+    <div class="criteria-card" id="vacSamCard" onclick="toggleVacDay('sam')">
+      <div class="criteria-label"><span class="icon">🎉</span> Samedi de vacances <div class="toggle-dot"></div></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px;">Ouvrir les sam. pendant les vac. sco.</div>
+    </div>
+    <div class="criteria-card" id="vacDimCard" onclick="toggleVacDay('dim')">
+      <div class="criteria-label"><span class="icon">🌿</span> Dimanche de vacances <div class="toggle-dot"></div></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px;">Ouvrir les dim. pendant les vac. sco.</div>
+    </div>
+  </div>
+</div>
+
+<div id="vacListSection">
+  <div class="section-title">Périodes de vacances 2027</div>
+  <div class="vac-list" id="vacList"></div>
+</div>
+
+<div class="divider"></div>
+
+<!-- JOURS FERIES -->
+<div class="section-title">Jours fériés 2027 — cliquer pour ouvrir / fermer</div>
+<div class="feriers-list" id="feriersList"></div>
+
+<!-- LÉGENDE -->
+<div class="section-title">Légende</div>
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:rgba(74,222,128,0.22)"></div> Ouvert</div>
+  <div class="legend-item"><div class="legend-dot" style="background:rgba(239,68,68,0.07)"></div> Fermé</div>
+  <div class="legend-item"><div class="legend-dot" style="background:rgba(250,204,21,0.28)"></div> Férié ouvert</div>
+  <div class="legend-item"><div class="legend-dot" style="background:rgba(129,140,248,0.28)"></div> Vac. sco. ouvert</div>
+</div>
+
+<!-- CALENDRIERS MENSUELS -->
+<div class="section-title">Vue mensuelle</div>
+<div class="months-grid" id="monthsGrid"></div>
+
+<script>
+// ═══════════════════════════════════════════
+// DONNÉES
+// ═══════════════════════════════════════════
+
+const JOURS_FERIES_2027 = [
+  { date: '2027-01-01', nom: "Jour de l'An" },
+  { date: '2027-03-29', nom: "Lundi de Pâques" },
+  { date: '2027-05-01', nom: "Fête du Travail" },
+  { date: '2027-05-08', nom: "Victoire 1945" },
+  { date: '2027-05-06', nom: "Ascension" },
+  { date: '2027-05-17', nom: "Lundi de Pentecôte" },
+  { date: '2027-07-14', nom: "Fête Nationale" },
+  { date: '2027-08-15', nom: "Assomption" },
+  { date: '2027-11-01', nom: "Toussaint" },
+  { date: '2027-11-11', nom: "Armistice 1918" },
+  { date: '2027-12-25', nom: "Noël" },
+];
+
+// Vacances 2026-2027 — toutes communes sauf hiver et printemps
+const VACANCES_PAR_ZONE = {
+  A: [
+    { nom: "Toussaint 2026",   debut: '2026-10-17', fin: '2026-11-02' },
+    { nom: "Noël 2026-2027",   debut: '2026-12-19', fin: '2027-01-04' },
+    { nom: "Hiver",            debut: '2027-02-13', fin: '2027-03-01' },
+    { nom: "Printemps",        debut: '2027-04-10', fin: '2027-04-26' },
+    { nom: "Été",              debut: '2027-07-03', fin: '2027-12-31' },
+  ],
+  B: [
+    { nom: "Toussaint 2026",   debut: '2026-10-17', fin: '2026-11-02' },
+    { nom: "Noël 2026-2027",   debut: '2026-12-19', fin: '2027-01-04' },
+    { nom: "Hiver",            debut: '2027-02-20', fin: '2027-03-08' },
+    { nom: "Printemps",        debut: '2027-04-17', fin: '2027-05-03' },
+    { nom: "Été",              debut: '2027-07-03', fin: '2027-12-31' },
+  ],
+  C: [
+    { nom: "Toussaint 2026",   debut: '2026-10-17', fin: '2026-11-02' },
+    { nom: "Noël 2026-2027",   debut: '2026-12-19', fin: '2027-01-04' },
+    { nom: "Hiver",            debut: '2027-02-06', fin: '2027-02-22' },
+    { nom: "Printemps",        debut: '2027-04-03', fin: '2027-04-19' },
+    { nom: "Été",              debut: '2027-07-03', fin: '2027-12-31' },
+  ],
+};
+
+const NOMS_MOIS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+
+// ═══════════════════════════════════════════
+// ÉTAT
+// ═══════════════════════════════════════════
+
+let openDays    = new Set();   // 0=dim…6=sam
+let feriesOpen  = new Set();   // dates ISO ouvertes les jours fériés
+let selectedZone = null;       // 'A' | 'B' | 'C' | null
+let vacSamOuvert = false;      // ouvrir les samedis de vacances
+let vacDimOuvert = false;      // ouvrir les dimanches de vacances
+
+// ═══════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════
+
+function ds(y,m,d){ return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`; }
+function parseDate(s){ const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d); }
+function isFerier(s){ return JOURS_FERIES_2027.some(f=>f.date===s); }
+
+function isVacSco(s){
+  if(!selectedZone) return false;
+  const d = parseDate(s);
+  return VACANCES_PAR_ZONE[selectedZone].some(v => d >= parseDate(v.debut) && d <= parseDate(v.fin));
+}
+
+function isOpen(s, dow){
+  const ferie = isFerier(s);
+  const vac   = isVacSco(s);
+
+  if(ferie) return feriesOpen.has(s);
+  if(vac){
+    if(dow === 6 && vacSamOuvert) return true;  // samedi de vacances
+    if(dow === 0 && vacDimOuvert) return true;  // dimanche de vacances
+  }
+  return openDays.has(dow);
+}
+
+// ═══════════════════════════════════════════
+// TOGGLE HANDLERS
+// ═══════════════════════════════════════════
+
+function toggleDay(card){
+  const day = parseInt(card.dataset.day);
+  if(openDays.has(day)) openDays.delete(day); else openDays.add(day);
+  card.classList.toggle('active');
+  refresh();
+}
+
+function toggleFerier(date){
+  if(feriesOpen.has(date)) feriesOpen.delete(date); else feriesOpen.add(date);
+  buildFeriersList();
+  buildMonthsGrid();
+  recalculate();
+}
+
+function selectZone(z){
+  selectedZone = z;
+  document.querySelectorAll('.zone-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.zone-btn[data-zone="${z}"]`).classList.add('active');
+  document.getElementById('vacDaysSection').style.display = 'block';
+  buildVacList();
+  refresh();
+}
+
+function toggleVacDay(which){
+  if(!selectedZone){ alert('Sélectionnez une zone d\'abord.'); return; }
+  if(which === 'sam'){
+    vacSamOuvert = !vacSamOuvert;
+    document.getElementById('vacSamCard').classList.toggle('active', vacSamOuvert);
+  } else {
+    vacDimOuvert = !vacDimOuvert;
+    document.getElementById('vacDimCard').classList.toggle('active', vacDimOuvert);
+  }
+  refresh();
+}
+
+// ═══════════════════════════════════════════
+// BUILD UI
+// ═══════════════════════════════════════════
+
+function buildFeriersList(){
+  const c = document.getElementById('feriersList');
+  c.innerHTML = '';
+  JOURS_FERIES_2027.forEach(f => {
+    const d = parseDate(f.date);
+    const dow = d.getDay();
+    const jn = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'][dow];
+    const ds2 = d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short'});
+    const open = feriesOpen.has(f.date);
+    const el = document.createElement('div');
+    el.className = 'ferier-item';
+    el.innerHTML = `
+      <div>
+        <div class="ferier-name">${f.nom}</div>
+        <div class="ferier-date">${jn} ${ds2}</div>
+      </div>
+      <span class="ferier-badge ${open?'ouvert':'ferme'}">${open?'OUVERT':'FERMÉ'}</span>
+    `;
+    el.onclick = () => toggleFerier(f.date);
+    c.appendChild(el);
+  });
+}
+
+function buildVacList(){
+  if(!selectedZone) return;
+  const c = document.getElementById('vacList');
+  c.innerHTML = '';
+  const vacs = VACANCES_PAR_ZONE[selectedZone].filter(v => v.debut.startsWith('2027') || v.fin.startsWith('2027'));
+  vacs.forEach(v => {
+    const deb = parseDate(v.debut);
+    const fin = parseDate(v.fin);
+    // Compte les jours qui sont en 2027
+    let cnt = 0;
+    const cursor = new Date(Math.max(deb, new Date(2027,0,1)));
+    const end    = new Date(Math.min(fin, new Date(2027,11,31)));
+    while(cursor <= end){ cnt++; cursor.setDate(cursor.getDate()+1); }
+    const el = document.createElement('div');
+    el.className = 'vac-item';
+    el.innerHTML = `
+      <div>
+        <div class="vac-name">${v.nom}</div>
+        <div class="vac-dates">${deb.toLocaleDateString('fr-FR',{day:'2-digit',month:'short'})} → ${fin.toLocaleDateString('fr-FR',{day:'2-digit',month:'short'})}</div>
+      </div>
+      <span class="vac-days-count">${cnt}j</span>
+    `;
+    c.appendChild(el);
+  });
+}
+
+function getDayClass(s, dow){
+  const ferie = isFerier(s);
+  const vac   = isVacSco(s);
+  const open  = isOpen(s, dow);
+
+  if(ferie && vac) return open ? 'vac-ferie-ouvert' : 'vac-ferie-ferme';
+  if(ferie)        return open ? 'ferie-ouvert'     : 'ferie-ferme';
+  if(vac)          return open ? 'vac-ouvert'       : 'vac-ferme';
+  return open ? 'ouvert' : 'ferme';
+}
+
+function buildMonthsGrid(){
+  const grid = document.getElementById('monthsGrid');
+  grid.innerHTML = '';
+  for(let m=0;m<12;m++){
+    const dim = new Date(2027,m+1,0).getDate();
+    const firstOff = (new Date(2027,m,1).getDay()+6)%7; // Mon-first
+    let monthOpen = 0;
+    const classes = [];
+    for(let d=1;d<=dim;d++){
+      const dow = new Date(2027,m,d).getDay();
+      const s   = ds(2027,m,d);
+      if(isOpen(s,dow)) monthOpen++;
+      classes.push(getDayClass(s,dow));
+    }
+    const card = document.createElement('div');
+    card.className = 'month-card';
+    let html = `<div class="month-name">${NOMS_MOIS[m]}<span class="month-count">${monthOpen}</span></div>
+    <div class="cal-grid">
+      <div class="cal-header">Lu</div><div class="cal-header">Ma</div><div class="cal-header">Me</div>
+      <div class="cal-header">Je</div><div class="cal-header">Ve</div><div class="cal-header">Sa</div>
+      <div class="cal-header">Di</div>`;
+    for(let i=0;i<firstOff;i++) html+=`<div class="cal-day empty"></div>`;
+    for(let d=1;d<=dim;d++) html+=`<div class="cal-day ${classes[d-1]}">${d}</div>`;
+    html+='</div>';
+    card.innerHTML=html;
+    grid.appendChild(card);
+  }
+}
+
+function recalculate(){
+  let total=0, closed=0, ferie=0, vac=0;
+  for(let m=0;m<12;m++){
+    const dim = new Date(2027,m+1,0).getDate();
+    for(let d=1;d<=dim;d++){
+      const dow = new Date(2027,m,d).getDay();
+      const s   = ds(2027,m,d);
+      const open = isOpen(s,dow);
+      if(open){
+        total++;
+        if(isFerier(s)) ferie++;
+        if(isVacSco(s)) vac++;
+      } else closed++;
+    }
+  }
+  document.getElementById('mainCount').textContent = total;
+  document.getElementById('cOpen').textContent     = total;
+  document.getElementById('cClosed').textContent   = closed;
+  document.getElementById('cFerie').textContent    = ferie;
+  document.getElementById('cVac').textContent      = vac;
+}
+
+function refresh(){
+  buildMonthsGrid();
+  recalculate();
+}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+buildFeriersList();
+buildMonthsGrid();
+recalculate();
+</script>
+</body>
+</html>
